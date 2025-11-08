@@ -8,6 +8,14 @@ interface User {
     points: number;
 }
 
+interface ChatMessage {
+    id: string;
+    userName: string;
+    message: string;
+    timestamp: number;
+    isSystem?: boolean;
+}
+
 export const useDrawingGame = (room: string, userName: string) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
@@ -20,10 +28,16 @@ export const useDrawingGame = (room: string, userName: string) => {
     const [users, setUsers] = useState<User[]>([]);
 
     // Game state
-    const [currentWord, setCurrentWord] = useState<string>("ELEPHANT");
-    const [guessedLetters, setGuessedLetters] = useState<Set<string>>(new Set(['e', 'l', 'p']));
+    const [currentWord, setCurrentWord] = useState<string>("");
+    const [guessedLetters, setGuessedLetters] = useState<Set<string>>(new Set());
     const [isWordSelectionModalOpen, setIsWordSelectionModalOpen] = useState<boolean>(false);
     const [currentDrawer, setCurrentDrawer] = useState<string>("");
+    const [currentDrawerName, setCurrentDrawerName] = useState<string>("");
+    const [gameStarted, setGameStarted] = useState<boolean>(false);
+    const [isWaitingForWord, setIsWaitingForWord] = useState<boolean>(false);
+
+    // Chat state
+    const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
 
     const resizeCanvas = useCallback(() => {
         const canvas = canvasRef.current;
@@ -89,6 +103,42 @@ export const useDrawingGame = (room: string, userName: string) => {
         // Clear from others
         socket.on("clear", () => {
             clearCanvas(true);
+        });
+
+        // Handle turn start
+        socket.on("turn:start", ({ drawer, turnStartTime }: { drawer: User, turnStartTime: number }) => {
+            console.log("turn:start", drawer, turnStartTime);
+            setCurrentDrawer(drawer.id);
+            setCurrentDrawerName(drawer.userName);
+            setCurrentWord("");
+            setGuessedLetters(new Set());
+            setGameStarted(true);
+            clearCanvas(false); // Clear canvas locally without emitting
+
+            // Check if current user is the drawer
+            const isCurrentUserDrawer = drawer.userName === userName;
+            if (isCurrentUserDrawer) {
+                setIsWordSelectionModalOpen(true);
+                setIsWaitingForWord(false);
+            } else {
+                setIsWordSelectionModalOpen(false);
+                setIsWaitingForWord(true);
+            }
+        });
+
+        // Handle word selected
+        socket.on("word:selected", ({ word, drawer }: { word: string, drawer: User }) => {
+            console.log("word:selected", word, drawer);
+            setCurrentWord(word);
+            setGuessedLetters(new Set());
+            setIsWordSelectionModalOpen(false);
+            setIsWaitingForWord(false);
+        });
+
+        // Handle incoming chat messages
+        socket.on("chat:message", (message: ChatMessage) => {
+            console.log("chat:message", message);
+            setChatMessages(prev => [...prev, message]);
         });
 
         return () => {
@@ -161,10 +211,12 @@ export const useDrawingGame = (room: string, userName: string) => {
     };
 
     const handleWordSelect = (word: string) => {
+        if (socketRef.current) {
+            socketRef.current.emit("word:select", word);
+        }
         setCurrentWord(word);
         setGuessedLetters(new Set()); // Reset guessed letters
         setIsWordSelectionModalOpen(false);
-        // TODO: Emit to socket that word was selected
     };
 
     const openWordSelectionModal = () => {
@@ -175,6 +227,32 @@ export const useDrawingGame = (room: string, userName: string) => {
         setIsWordSelectionModalOpen(false);
     };
 
+    const startGame = () => {
+        if (socketRef.current) {
+            socketRef.current.emit("game:start");
+        }
+    };
+
+    const sendMessage = (message: string) => {
+        if (socketRef.current && message.trim()) {
+            const trimmedMessage = message.trim();
+
+            // If user is not the drawer and there's an active word, treat as guess
+            const currentUser = users.find(u => u.userName === userName);
+            const isCurrentUserDrawer = currentUser && currentDrawer === currentUser.id;
+
+            if (!isCurrentUserDrawer && currentWord) {
+                socketRef.current.emit("word:guess", trimmedMessage);
+            } else {
+                // Regular chat message
+                socketRef.current.emit("chat:message", trimmedMessage);
+            }
+        }
+    };
+
+    // Determine if current user is the room creator (first user in the list)
+    const isRoomCreator = users.length > 0 && users[0].userName === userName;
+
     return {
         canvasRef,
         users,
@@ -182,6 +260,11 @@ export const useDrawingGame = (room: string, userName: string) => {
         guessedLetters,
         isWordSelectionModalOpen,
         currentDrawer,
+        currentDrawerName,
+        gameStarted,
+        isWaitingForWord,
+        isRoomCreator,
+        chatMessages,
         pointerDown,
         pointerMove,
         pointerUp,
@@ -189,5 +272,7 @@ export const useDrawingGame = (room: string, userName: string) => {
         handleWordSelect,
         openWordSelectionModal,
         closeWordSelectionModal,
+        startGame,
+        sendMessage,
     };
 };

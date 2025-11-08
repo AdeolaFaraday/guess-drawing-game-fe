@@ -4,9 +4,19 @@ interface GameHeaderProps {
     room: string;
     userName: string;
     onLeaveRoom: () => void;
+    isRoomCreator?: boolean;
+    gameStarted?: boolean;
+    onStartGame?: () => void;
 }
 
-const GameHeader: React.FC<GameHeaderProps> = ({ room, userName, onLeaveRoom }) => {
+const GameHeader: React.FC<GameHeaderProps> = ({
+    room,
+    userName,
+    onLeaveRoom,
+    isRoomCreator = false,
+    gameStarted = false,
+    onStartGame
+}) => {
     return (
         <div className="flex items-center justify-between px-3 lg:px-4 py-2 lg:py-3 bg-white border-b border-gray-200 shadow-sm">
             <div className="flex items-center space-x-2 lg:space-x-4">
@@ -21,12 +31,22 @@ const GameHeader: React.FC<GameHeaderProps> = ({ room, userName, onLeaveRoom }) 
                     <span className="font-medium text-gray-700">{userName}</span>
                 </div>
             </div>
-            <button
-                onClick={onLeaveRoom}
-                className="px-2 lg:px-3 py-1 lg:py-1.5 text-xs lg:text-sm bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors duration-200 shadow-sm hover:shadow-md"
-            >
-                Leave
-            </button>
+            <div className="flex items-center space-x-2">
+                {isRoomCreator && !gameStarted && onStartGame && (
+                    <button
+                        onClick={onStartGame}
+                        className="px-2 lg:px-3 py-1 lg:py-1.5 text-xs lg:text-sm bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors duration-200 shadow-sm hover:shadow-md"
+                    >
+                        Start Game
+                    </button>
+                )}
+                <button
+                    onClick={onLeaveRoom}
+                    className="px-2 lg:px-3 py-1 lg:py-1.5 text-xs lg:text-sm bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors duration-200 shadow-sm hover:shadow-md"
+                >
+                    Leave
+                </button>
+            </div>
         </div>
     );
 };
