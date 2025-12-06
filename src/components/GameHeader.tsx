@@ -7,6 +7,8 @@ interface GameHeaderProps {
     isRoomCreator?: boolean;
     gameStarted?: boolean;
     onStartGame?: () => void;
+    timerRemaining?: number;
+    timerTotal?: number;
 }
 
 const GameHeader: React.FC<GameHeaderProps> = ({
@@ -15,7 +17,8 @@ const GameHeader: React.FC<GameHeaderProps> = ({
     onLeaveRoom,
     isRoomCreator = false,
     gameStarted = false,
-    onStartGame
+    onStartGame,
+    timerRemaining = 0
 }) => {
     return (
         <div className="flex items-center justify-between px-3 lg:px-4 py-2 lg:py-3 bg-white border-b border-gray-200 shadow-sm">
@@ -24,6 +27,20 @@ const GameHeader: React.FC<GameHeaderProps> = ({
                     <span className="text-xs lg:text-sm font-medium text-gray-600">Room:</span>
                     <span className="ml-1 text-xs lg:text-sm font-semibold text-indigo-600">{room}</span>
                 </div>
+                {gameStarted && timerRemaining > 0 && (
+                    <div className={`flex items-center space-x-2 px-3 py-1 rounded-lg border-2 ${
+                        timerRemaining <= 10
+                            ? 'bg-red-50 border-red-300 animate-pulse'
+                            : 'bg-blue-50 border-blue-300'
+                    }`}>
+                        <span className="text-lg">⏰</span>
+                        <span className={`text-sm lg:text-base font-mono font-bold ${
+                            timerRemaining <= 10 ? 'text-red-700' : 'text-blue-700'
+                        }`}>
+                            {timerRemaining}s
+                        </span>
+                    </div>
+                )}
                 <div className="text-xs lg:text-sm text-gray-500 hidden sm:block">
                     Welcome, <span className="font-medium text-gray-700">{userName}</span>
                 </div>

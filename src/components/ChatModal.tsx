@@ -105,25 +105,32 @@ const ChatModal: React.FC<ChatModalProps> = ({
                                             {message.message}
                                         </div>
                                     ) : message.isCorrectGuess ? (
-                                        <div className="bg-gradient-to-r from-green-400 to-green-600 text-white text-sm px-4 py-3 rounded-xl max-w-xs text-center shadow-lg">
-                                            <div className="font-bold text-base">🎉 {message.userName} got it!</div>
-                                            <div className="text-xs opacity-90">+{message.points} points • #{message.position} place</div>
+                                        <div className={`max-w-xs ${message.userName === currentUserName ? 'order-2' : 'order-1'}`}>
+                                            <div
+                                                className={`px-2 py-1 rounded-2xl text-xs font-medium ${
+                                                    message.userName === currentUserName
+                                                        ? 'bg-green-500 text-white'
+                                                        : 'bg-green-100 text-green-800'
+                                                }`}
+                                            >
+                                                <span className="font-semibold">{message.userName}:</span> 🎉 Correct! +{message.points} points (#{message.position} place)
+                                            </div>
+                                            <div className={`text-xs text-gray-400 mt-1 px-3 ${
+                                                message.userName === currentUserName ? 'text-right' : 'text-left'
+                                            }`}>
+                                                {formatTime(message.timestamp)}
+                                            </div>
                                         </div>
                                     ) : (
                                         <div className={`max-w-xs ${message.userName === currentUserName ? 'order-2' : 'order-1'}`}>
-                                            {message.userName !== currentUserName && (
-                                                <div className="text-xs text-gray-500 mb-1 px-3">
-                                                    {message.userName}
-                                                </div>
-                                            )}
                                             <div
-                                                className={`px-3 py-2 rounded-2xl text-sm ${
+                                                className={`px-2 py-1 rounded-2xl text-xs ${
                                                     message.userName === currentUserName
                                                         ? 'bg-blue-500 text-white'
                                                         : 'bg-gray-100 text-gray-800'
                                                 }`}
                                             >
-                                                {message.message}
+                                                <span className="font-semibold">{message.userName}:</span> {message.message}
                                             </div>
                                             <div className={`text-xs text-gray-400 mt-1 px-3 ${
                                                 message.userName === currentUserName ? 'text-right' : 'text-left'

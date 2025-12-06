@@ -34,6 +34,8 @@ const DrawingGame = () => {
         isWaitingForWord,
         isRoomCreator,
         chatMessages,
+        timerRemaining,
+        timerTotal,
         pointerDown,
         pointerMove,
         pointerUp,
@@ -55,6 +57,8 @@ const DrawingGame = () => {
                 isRoomCreator={isRoomCreator}
                 gameStarted={gameStarted}
                 onStartGame={startGame}
+                timerRemaining={timerRemaining}
+                timerTotal={timerTotal}
             />
 
             {/* Main Content Area - Desktop: horizontal with chat, Mobile: vertical */}
