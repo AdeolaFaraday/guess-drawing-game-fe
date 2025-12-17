@@ -86,7 +86,6 @@ export const useDrawingGameGrpc = (room: string, userName: string) => {
 
     const lastPointRef = useRef({ x: 0, y: 0 });
     const isDrawingRef = useRef(false);
-    const streamRef = useRef<any>(null);
 
     // User management state
     const [users, setUsers] = useState<User[]>([]);
@@ -148,7 +147,7 @@ export const useDrawingGameGrpc = (room: string, userName: string) => {
             if (!isConnected) return;
 
             try {
-                const response = await fetch('http://localhost:3001/grpc-event', {
+                const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/grpc-event`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -183,7 +182,7 @@ export const useDrawingGameGrpc = (room: string, userName: string) => {
             if (!isConnected) return;
 
             try {
-                const response = await fetch(`http://localhost:3001/grpc-poll?room=${room}&userId=temp-id`);
+                const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/grpc-poll?room=${room}&userId=temp-id`);
                 if (response.ok) {
                     const result = await response.json();
                     if (result.events) {
@@ -267,7 +266,7 @@ export const useDrawingGameGrpc = (room: string, userName: string) => {
 
     const sendGameEvent = async (event: Partial<GameEvent>) => {
         try {
-            const response = await fetch('http://localhost:3001/grpc-event', {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/grpc-event`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

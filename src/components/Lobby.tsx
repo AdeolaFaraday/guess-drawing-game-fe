@@ -33,7 +33,7 @@ const Lobby: React.FC = () => {
         if (!room.trim()) return;
 
         setIsCheckingRoom(true);
-        const socket = io("http://localhost:3001", {
+        const socket = io(import.meta.env.VITE_BACKEND_URL, {
             query: { room, userName: 'temp-checker' }
         });
 
